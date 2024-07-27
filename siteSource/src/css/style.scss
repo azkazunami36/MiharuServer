@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap');
+@import url("./headerSryle.css");
+
+@font-face {
+    font-family: 'keifont';
+    src: url(./fonts/keifont.ttf);
+}
+
+html,
+body {
+    background-image: url(/src/image/background-black.svg);
+    background-size: 100%;
+    background-blend-mode: lighten;
+    background-color: #ffffffce;
+    margin: 0;
+    min-width: 100%;
+    min-height: 100vh;
+    font-family: "Noto Sans JP", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #00000093;
+        color: #fff;
+    }
+}
+
+@media screen and (max-width: 800px) {
+    @media (prefers-color-scheme: dark) {
+    }
+}

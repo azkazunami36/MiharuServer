@@ -1,0 +1,89 @@
+* {
+    overflow: hidden;
+    margin: 0;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-content: flex-end;
+    height: 100%;
+}
+
+.images {
+    user-select: none;
+    -webkit-user-drag: none;
+    transition: 0.2s;
+}
+
+div.texts {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.628), rgba(0, 0, 0, 0));
+}
+
+img {
+    -webkit-user-drag: none;
+}
+
+img.background {
+    filter: blur(20px);
+    top: -10px;
+    left: -10px;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+div.background {
+    background-color: rgba(255, 255, 255, 0.082);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+div.line {
+    background: #000000;
+    height: 1px;
+}
+
+.reversal-color {
+    filter: invert(1);
+}
+
+img.reversal-background-color {
+    filter: blur(20px)invert(1);
+}
+
+.help-window {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgb(255, 198, 198), rgb(255, 108, 108));
+    z-index: -1;
+    overflow-y: scroll;
+    transition: 0.25s;
+    transform: scale(0.85);
+    opacity: 0;
+}
+
+.help-window-layout {
+    width: auto;
+    height: auto;
+    margin: 10px 2.5% 60px 2.5%;
+}
+
+.helpd {
+    z-index: 9999;
+    transform: scale(1);
+    opacity: 1;
+}

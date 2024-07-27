@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap');
+
+@font-face {
+    font-family: 'keifont';
+    src: url(./fonts/keifont.ttf);
+}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    font-family: "Noto Sans JP", sans-serif;
+}
+
+#header {
+    user-select: none;
+    width: 100%;
+    height: 60px;
+
+    .viewBody {
+        width: 100%;
+        height: 60px;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        position: fixed;
+        z-index: 1;
+
+        .button {
+            display: inline-block;
+            width: fit-content;
+            min-height: 60px;
+            text-align: center;
+            line-height: 56px;
+            color: white;
+            border-radius: 5px;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+    }
+}

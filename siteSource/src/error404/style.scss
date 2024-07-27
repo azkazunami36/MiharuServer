@@ -1,0 +1,25 @@
+#miharu {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    height: 300px;
+    max-height: 500px;
+
+    .e404 {
+        height: 9%;
+        position: absolute;
+    }
+
+    .main {
+        height: 100%;
+    }
+}
+
+#texts {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    width: 100%;
+}

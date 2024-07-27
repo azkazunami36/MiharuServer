@@ -1,0 +1,10 @@
+/node_modules/*
+*.js
+*.d.ts
+/siteSource/.well-known*
+/siteSource/novel/novelTexts/*
+/systemDatas/*
+/keyData/*
+*.css
+*.css.map
+.env
