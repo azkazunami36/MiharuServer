@@ -2,7 +2,7 @@ html,body {
     height: 100%;
 }
 
-#mainContent {
+#mainContents {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,7 +11,7 @@ html,body {
     height: calc(100% - 120px);
     .loginWindow {
         max-width: 700px;
-        max-height: 480px;
+        max-height: 490px;
         width: 100%;
         height: 100%;
         background: white;
@@ -57,6 +57,28 @@ html,body {
                 width: 100%;
                 margin-top: 10px;
                 input {
+                }
+            }
+        }
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    #mainContents {
+
+        .loginWindow {
+            background: rgb(67, 67, 67);
+
+            .body {
+
+                .box {
+
+                    .input {
+
+                        input {
+                            background: rgb(67, 67, 67);
+                        }
+                    }
                 }
             }
         }

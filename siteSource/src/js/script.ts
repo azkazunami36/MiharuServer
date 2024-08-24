@@ -1,16 +1,7 @@
-import { getRuleBySelector } from "./getRuleBySelector.js";
-import { headerSetting } from "./headerSetting.js";
-import { resizeEventSetting } from "./resizeEventSetting.js";
+import { sumPageInit } from "./sumPageInit.js";
 
 addEventListener("load", async () => {
-    headerSetting();
-    function resizeEvent() {
-        const { lessThan } = new resizeEventSetting();
-        const mainContent = getRuleBySelector("#mainContents");
-        if (mainContent) { }
-    }
-    resizeEvent();
-    window.addEventListener("resize", resizeEvent);
+    sumPageInit();
 
     (async function descriptionSetting() {
         const kazunamiDescription = await (await fetch("/mdToHTML", {

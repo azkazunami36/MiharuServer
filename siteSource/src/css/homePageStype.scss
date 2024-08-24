@@ -1,24 +1,25 @@
-#mainContents {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-
-    .contentMargin {
+#mainScroll {
+    .mainContents {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
-        width: 100%;
-        max-width: 1000px;
-        height: fit-content;
-
-        .contentMain {
-            min-width: calc(100% - 10px);
-            min-height: calc(100% - 10px);
-            margin: 0 0 10px 0;
-            border: 1px solid black;
-            border-radius: 10px;
-            overflow: hidden;
+    
+        .contentMargin {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 1000px;
+            height: fit-content;
+    
+            .contentMain {
+                min-width: calc(100% - 10px);
+                min-height: calc(100% - 10px);
+                margin: 0 0 10px 0;
+                border: 1px solid black;
+                border-radius: 10px;
+                overflow: hidden;
+            }
         }
     }
 }

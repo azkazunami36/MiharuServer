@@ -1,23 +1,24 @@
-import e from "express";
-import { getRuleBySelector } from "./getRuleBySelector.js";
 import { resizeEventSetting } from "./resizeEventSetting.js";
 
 export function headerSetting() {
     const mainHeader = document.getElementById("mainHeader");
     if (mainHeader) {
+        mainHeader.getElementsByClassName("bodyHeader")[0]?.remove();
         mainHeader.style.width = "";
         mainHeader.style.marginLeft = "";
         mainHeader.style.marginRight = "";
         const bodyHeader = document.createElement("div");
         bodyHeader.classList.add("bodyHeader");
+        bodyHeader.style.scrollBehavior = "smooth";
+        const mainScroll = document.getElementById("mainScroll");
         function shadow() {
-            if (window.scrollY <= 0)
+            if (mainScroll && mainScroll.scrollTop <= 0)
                 bodyHeader?.classList.add("above");
             else
                 bodyHeader?.classList.remove("above");
         }
         shadow();
-        addEventListener("scroll", shadow);
+        if (mainScroll) mainScroll.addEventListener("scroll", shadow);
 
         function propSetting(tools: { name?: string, url?: string, imageUrl?: string, script?: (elements: { tr: HTMLTableRowElement, td: HTMLTableCellElement, a: HTMLAnchorElement }) => void }[], tr: HTMLTableRowElement) {
             for (const func of tools) {
@@ -66,8 +67,9 @@ export function headerSetting() {
             { name: "Promised Lazy", url: "/promisedLazy/" },
             { name: "寄付・支援", url: "/donate/" },
             { name: "依頼・リクエスト", url: "/request/" },
+            { name: "サーバー仕様", url: "/serverStatus/" },
             { name: "Webページ制作中です。" },
-            { name: "ログイン", url: "/login/", imageUrl: "f" }
+            { name: "ログイン", url: "/login/", imageUrl: "" }
         ], pageItemTr);
         pageItemTbody.appendChild(pageItemTr);
         pageItemTable.appendChild(pageItemTbody);
@@ -83,8 +85,8 @@ export function headerSetting() {
                 imageUrl: "/src/image/メニューアイコン黒.svg", script: elements => {
                     let timeout: NodeJS.Timeout | undefined;
                     let listenerIs = false;
-                    function eventListener (e: any) {
-                        
+                    function eventListener(e: any) {
+
                     }
                     function click(e?: MouseEvent | TouchEvent) {
                         e?.preventDefault();
@@ -129,7 +131,35 @@ export function headerSetting() {
         bodyHeader.appendChild(normalHeaderToolsTable);
 
         mainHeader.appendChild(bodyHeader);
+        let grabLocation = 0;
+        let grabitLocation = 0;
+        let grabitMoveing = false;
+        let grabing = false;
+        bodyHeader.addEventListener("mousedown", e => {
+            e.preventDefault();
+            bodyHeader.style.scrollBehavior = "auto";
+            grabitMoveing = false;
+            grabing = true;
+            grabitLocation = e.clientX;
+            grabLocation = e.clientX;
+        })
+        bodyHeader.addEventListener("mousemove", e => {
+            if (grabing) {
+                e.preventDefault();
+                if (!grabitMoveing && e.clientX <= grabitLocation - 3 || e.clientX >= grabitLocation + 3) { grabitMoveing = true; }
+                const move = e.clientX - grabLocation;
+                grabLocation = e.clientX;
+                bodyHeader.scrollLeft -= move;
+            }
+        })
+        addEventListener("mouseup", e => { grabing = false; bodyHeader.style.scrollBehavior = "smooth"; });
+        bodyHeader.addEventListener("click", e => { if (grabitMoveing) { e.preventDefault(); } });
         if (!(window.innerWidth > 700)) pageItemTable.style.display = "none";
+        bodyHeader.addEventListener("wheel", (e) => {
+            if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+            e.preventDefault();
+            bodyHeader.scrollLeft += e.deltaY;
+        });
     }
     function resizeEvent() {
         const { lessThan } = new resizeEventSetting();

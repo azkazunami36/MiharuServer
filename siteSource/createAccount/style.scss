@@ -3,13 +3,17 @@ body {
     height: 100%;
 }
 
-#mainContent {
+#mainContents {
     display: flex;
     justify-content: center;
     align-items: center;
 
     width: 100%;
     height: calc(100% - 120px);
+
+    #authCodeWindow {
+        max-height: 320px;
+    }
 
     .loginWindow {
         max-width: 700px;
@@ -36,6 +40,10 @@ body {
                 width: 100%;
                 margin: 10px 0;
                 font-size: 12px;
+            }
+
+            .error {
+                color: red;
             }
 
             .box {
@@ -68,6 +76,28 @@ body {
                 margin-top: 10px;
 
                 input {}
+            }
+        }
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    #mainContents {
+
+        .loginWindow {
+            background: rgb(67, 67, 67);
+
+            .body {
+
+                .box {
+
+                    .input {
+
+                        input {
+                            background: rgb(67, 67, 67);
+                        }
+                    }
+                }
             }
         }
     }

@@ -1,3 +1,3 @@
-import { headerSetting } from "../src/js/headerSetting.js";
+import { sumPageInit } from "../src/js/sumPageInit.js";
 
-headerSetting();
+sumPageInit();

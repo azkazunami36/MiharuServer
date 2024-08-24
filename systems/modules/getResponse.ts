@@ -3,19 +3,25 @@ import fsP from "fs/promises";
 import path from "path";
 import http from "http";
 import express from "express";
-import multer from "multer";
 import bodyParser from "body-parser";
 
+/**
+ * ## Get Response
+ * これはGETリクエストが来た際に、静的なファイルを渡すためのクラスです。映像などの大きなデータや、様々な拡張子のデータを正しい方法で返答します。
+ */
 export class GetResponse {
     constructor() { }
+    /** エラー発生時の表示するファイルをここに設定します。 */
     errorHtmlPath: { [error: number]: string } = {
         404: ""
     }
+    /** GETリクエストのURLを扱える形に変換します。 */
     urlGet(url: string) {
         const parsedURL = decodeURIComponent(url);
         const splitedURL = parsedURL.split("?")[0];
         return splitedURL[splitedURL.length - 1] !== "/" ? splitedURL : splitedURL + "index.html";
     }
+    /** ファイルパスを元にヘッダーを取得します。 */
     async headerGet(req: express.Request, filepath: string, fileSize: number): Promise<http.OutgoingHttpHeaders | http.OutgoingHttpHeader[]> {
         const headers: http.OutgoingHttpHeaders | http.OutgoingHttpHeader[] = { "Accept-Ranges": "bytes" };
         const data = [
@@ -81,6 +87,7 @@ export class GetResponse {
             ["txt", "text/plain"],
             ["vsd", "application/vnd.visio"],
             ["wav", "audio/wav"],
+            ["wasm", "application/wasm"],
             ["weba", "audio/webm"],
             ["webm", "video/webm"],
             ["webp", "image/webp"],
@@ -111,6 +118,7 @@ export class GetResponse {
         headers["Content-Range"] = "bytes " + ranges.start + "-" + ranges.end + "/" + fileSize;
         return headers;
     }
+    /** ヘッダーからレンジ(範囲)を取得してjsonで返答します。 */
     async rangesGet(req: express.Request, fileSize: number) {
         let g = String(req.headers.range).split("-");
         return {
@@ -118,6 +126,7 @@ export class GetResponse {
             end: Number(g[1]?.replace(/\D/g, "")) || Math.min(Number(g[0]?.replace(/\D/g, "")) + 1 * 1e7, fileSize === 0 ? 0 : fileSize - 1)
         }
     }
+    /** 返答するファイルのパスなどを入力し、ヘッダーからファイルの送信範囲を確認して取得、そして返答します。 */
     async getResProcessing(req: express.Request, res: express.Response, filepath: string, fileSize: number, headers: http.OutgoingHttpHeaders | http.OutgoingHttpHeader[]) {
         if (fs.existsSync(filepath)) {
             try {
@@ -132,8 +141,10 @@ export class GetResponse {
             }
         } else await this.error(req, res, 404);
     }
+    /** エラー時の返答を行います。最低限のヘッダーと特定のファイル、そしてレスポンスコードを設定して返答します。 */
     async error(req: express.Request, res: express.Response, errorNo: number) {
         const filepath = this.errorHtmlPath[errorNo];
+        console.log((new Date()).toLocaleTimeString() + ": " + this.urlGet(req.url), req.headers.host, req.ip);
         if (filepath && fs.existsSync(filepath)) {
             const fileSize = (await fsP.stat(filepath)).size;
             const headers = await this.headerGet(req, filepath, fileSize);
@@ -155,16 +166,18 @@ export class GetResponse {
             res.end();
         }
     }
+    /** この関数に`req` `res` `Folder Path`の３つを入力すると、その入力を元にファイルを選択し、送信範囲を決定し、正しいヘッダーをつけて返答します。 */
     async getResponceAuto(req: express.Request, res: express.Response, leftPathEdit?: string) {
         const url = (leftPathEdit ? leftPathEdit : "") + this.urlGet(req.url);
         if (fs.existsSync("." + url) && (await fsP.stat("." + url)).isDirectory()) return res.redirect(req.url + "/");
-        console.log((new Date()).toLocaleTimeString() + ": " + this.urlGet(req.url), req.headers.host);
+        console.log((new Date()).toLocaleTimeString() + ": " + this.urlGet(req.url), req.headers.host, req.ip);
         const filepath = "." + url;
         if (!fs.existsSync(filepath)) return await this.error(req, res, 404);
         const fileSize = (await fsP.stat(filepath)).size;
         const headers = await this.headerGet(req, filepath, fileSize);
         await this.getResProcessing(req, res, filepath, fileSize, headers);
     }
+    /** app.useを使った様々な機能のセッティングをします。 */
     setAppUse(app: express.Express) {
         app.use(bodyParser.urlencoded({ limit: "127gb", extended: true }));
         app.use(bodyParser.raw({ type: '*/*' }));

@@ -12,27 +12,51 @@
 
 <body>
     <div id="mainHeader" style="width: fit-content; margin-left: auto; margin-right: auto;"> </div>
-    <div id="mainContent">
-        <div class="loginWindow">
+    <div id="mainContents">
+        <div id="loginWindow" class="loginWindow">
             <div class="body">
                 <div class="title">ログイン</div>
+                <div class="description">警告。現在はこのページが完成していません。利用までもうしばらくお待ちください。</div>
                 <div class="description">ログインすることで、sumwave28536.com が提供するサービスを継続して利用したり、アイテムを購入して利便性を向上することが出来ます。</div>
+                <div id="emptyusername" class="description error" style="display: none;">メールアドレスまたはIDを入力してください。</div>
+                <div id="emptypassword" class="description error" style="display: none;">パスワードを入力してください。</div>
+                <div id="notmatchingpassword" class="description error" style="display: none;">メールアドレス・IDまたはパスワードが一致しません。再度入力してください。
+                </div>
                 <form>
                     <div class="box">
-                        <div class="typeName">メールアドレス/ユーザー名</div>
+                        <div class="typeName">メールアドレス/ID</div>
                         <div class="input">
-                            <input type="text" name="username" autocomplete="username">
+                            <input id="username" type="text" name="username" autocomplete="username">
                         </div>
                     </div>
                     <div class="box">
                         <div class="typeName">パスワード</div>
                         <div class="input">
-                            <input type="password" name="password" autocomplete="current-password">
+                            <input id="password" type="password" name="password" autocomplete="current-password">
                         </div>
                     </div>
                     <div class="description">アカウントが存在しない場合は<a href="/createAccount/">新規アカウント</a>を作成することができます。</div>
                     <div class="bottomButton">
-                        <input type="submit">
+                        <input id="submit" type="submit">
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="authCodeWindow" class="loginWindow" style="display: none;">
+            <div class="body">
+                <div class="title">メールアドレス認証</div>
+                <div class="description">あなたのメールアドレスに認証コードを送信しました。認証コードを入力し、完了してください。</div>
+                <div class="description">まだログインは完了していません。</div>
+                <div id="notmatchcode" class="description error" style="display: none;">パスワードの文字数が足りません。確認してください。</div>
+                <form>
+                    <div class="box">
+                        <div class="typeName">認証コード</div>
+                        <div class="input">
+                            <input id="authCode" type="text">
+                        </div>
+                    </div>
+                    <div class="bottomButton">
+                        <input id="authsubmit" type="submit">
                     </div>
                 </form>
             </div>

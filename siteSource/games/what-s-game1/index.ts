@@ -6,6 +6,7 @@ headerSetting();
 addEventListener("load", () => {
     new class imageView {
         mainElement: HTMLImageElement
+        body: HTMLElement
         createImagePosition = 50;
         imageType = [
             "1232.jpg",
@@ -14,6 +15,7 @@ addEventListener("load", () => {
         ]
         imageTypeIsNo = 0;
         constructor() {
+            this.body = document.body;
             this.mainElement = document.getElementById('ibuki') as HTMLImageElement
             const imageView = this;
 

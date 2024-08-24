@@ -12,47 +12,83 @@
 
 <body>
     <div id="mainHeader" style="width: fit-content; margin-left: auto; margin-right: auto;"> </div>
-    <div id="mainContent">
-        <div class="loginWindow">
+    <div id="mainContents">
+        <div id="createAccountWindow" class="loginWindow">
             <div class="body">
                 <div class="title">アカウント作成</div>
-                <div class="description">電話番号はユーザーの不正作成を抑制するために使用され、２段階認証などのセキュリティ向上に役立ちます。</div>
+                <div class="description">警告。現在はこのページが完成していません。利用までもうしばらくお待ちください。</div>
+                <div id="emptynickname" class="description error" style="display: none;">ニックネームを入力してください。</div>
+                <div id="usedmailaddress" class="description error" style="display: none;">
+                    このメールアドレスはすでに使われています。ログインを行なってください。</div>
+                <div id="emptymailaddress" class="description error" style="display: none;">メールアドレスを入力してください。</div>
+                <div id="emptyid" class="description error" style="display: none;">IDを入力してください。</div>
+                <div id="duplicid" class="description error" style="display: none;">このIDはすでに使われています。他のIDを使用してください。</div>
+                <div id="incorrectid" class="description error" style="display: none;">
+                    IDに不正な文字が入力されています。英数字と.(ドット)、-(ハイフン)、_(アンダーバー)が利用できます。確認してください。</div>
+                <div id="toolongid" class="description error" style="display: none;">IDが長すぎます。確認してください。</div>
+                <div id="shortageid" class="description error" style="display: none;">IDの文字数が足りません。確認してください。</div>
+                <div id="emptypassword" class="description error" style="display: none;">パスワードを入力してください。</div>
+                <div id="notmatchingpassword" class="description error" style="display: none;">パスワードが一致しません。再度入力してください。
+                </div>
+                <div id="shortagepassword" class="description error" style="display: none;">パスワードの文字数が足りません。確認してください。
+                </div>
                 <form>
                     <div class="box">
-                        <div class="typeName">電話番号(ハイフンなし)</div>
+                        <div class="typeName">ID</div>
                         <div class="input">
-                            <input type="text" name="phone">
+                            <input id="id" type="text" name="user[url_name]">
                         </div>
                     </div>
                     <div class="box">
-                        <div class="typeName">ユーザー名</div>
+                        <div class="typeName">ニックネーム</div>
                         <div class="input">
-                            <input type="text" name="user[url_name]">
+                            <input id="nickname" type="text" name="user[url_name]">
                         </div>
                     </div>
                     <div class="box">
                         <div class="typeName">メールアドレス</div>
                         <div class="input">
-                            <input type="text" name="user[email]">
+                            <input id="mailAddress" type="text" name="user[email]">
                         </div>
                     </div>
                     <div class="box">
                         <div class="typeName">パスワードを作成</div>
                         <div class="input">
-                            <input type="password" name="user[password]">
+                            <input id="password" type="password" name="user[password]">
                         </div>
                     </div>
                     <div class="box">
                         <div class="typeName">パスワード再入力</div>
                         <div class="input">
-                            <input type="password" name="user[password]">
+                            <input id="repassword" type="password" name="user[password]">
                         </div>
                     </div>
-                    <div class="description">アカウントを作成することで、<a>利用規約</a>および<a>アカウント利用規約</a>に同意したことになります。そして、sumwave28536.com が提供するサービスを継続して利用したり、アイテムを購入して利便性を向上することが出来ます。</div>
-                    
+                    <div class="description">
+                        アカウントを作成することで、<a>利用規約</a>および<a>アカウント利用規約</a>に同意したことになります。そして、sumwave28536.com
+                        が提供するサービスを継続して利用したり、アイテムを購入して利便性を向上することが出来ます。</div>
+
                     <div class="description">すでにアカウントを作成済みの場合は<a href="/login/">ログイン</a>をしてください。</div>
                     <div class="bottomButton">
-                        <input type="submit">
+                        <input id="submit" type="submit">
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="authCodeWindow" class="loginWindow" style="display: none;">
+            <div class="body">
+                <div class="title">メールアドレス認証</div>
+                <div class="description">あなたのメールアドレスに認証コードを送信しました。認証コードを入力し、完了してください。</div>
+                <div class="description">まだアカウント作成は完了していません。</div>
+                <div id="notmatchcode" class="description error" style="display: none;">パスワードの文字数が足りません。確認してください。</div>
+                <form>
+                    <div class="box">
+                        <div class="typeName">認証コード</div>
+                        <div class="input">
+                            <input id="authCode" type="text">
+                        </div>
+                    </div>
+                    <div class="bottomButton">
+                        <input id="authsubmit" type="submit">
                     </div>
                 </form>
             </div>
