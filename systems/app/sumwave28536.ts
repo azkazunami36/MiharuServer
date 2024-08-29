@@ -21,7 +21,7 @@ const jyAPI = new jyupAPI();
 
 const allowed: { [type: string]: string[] } = {
     files: ["", "index.html"],
-    folders: ["home", ".well-known", "bulletinBoard", "donate", "novel", "promisedLazy", "request", "SW36", "WebOS", "games", "login", "createAccount", "src", "serverStatus"]
+    folders: ["home", ".well-known", "bulletinBoard", "donate", "novel", "promisedLazy", "request", "SW36", "WebOS", "games", "login", "createAccount", "src", "serverStatus", "accountManage"]
 };
 
 const post: { path: string, func: (req: express.Request, res: express.Response) => any }[] = [

@@ -1,9 +1,11 @@
+import cookieValueGet from "../src/js/cookieValueGet.js";
 import postTool from "../src/js/postTool.js";
 import { sumPageInit } from "../src/js/sumPageInit.js";
 
 addEventListener("load", () => {
     sumPageInit();
 
+    if (cookieValueGet("token") && cookieValueGet("id")) window.location.href = "/accountManage/";
     const createAccountWindow = document.getElementById("createAccountWindow");
 
     const id = document.getElementById("id") as HTMLInputElement | null;
@@ -98,17 +100,12 @@ addEventListener("load", () => {
             authsubmit.addEventListener("click", async e => {
                 e.preventDefault();
                 try {
-                    console.log("authsubmit送信")
                     notmatchcode.style.display = "none";
-                    console.log("mailTokenGet")
-                    const mailToken = JSON.parse(String(await postTool("/userRequest/mailTokenGet", { mailAddress: createData.mailAddress, code: authCode.value }))).mailToken;
-                    console.log("mailToken: " + mailToken);
-                    createData.mailCheckToken = mailToken;
-                    console.log("createAccount")
+                    createData.mailCheckToken = JSON.parse(String(await postTool("/userRequest/mailTokenGet", { mailAddress: createData.mailAddress, code: authCode.value }))).mailToken;;
                     await postTool("/userRequest/createAccounts", createData);
-                    console.log("ok. loginTokenGet")
                     const loginToken = JSON.parse(String(await postTool("/userRequest/loginTokenGet", createData))).loginToken;
-                    console.log("loginToken: " + loginToken);
+                    document.cookie = "token=" + loginToken + ";maxage=" + (60 * 60 * 24 * 180);
+                    document.cookie = "id=" + createData.userID + ";maxage=" + (60 * 60 * 24 * 180);
                 } catch (e) {
                     console.log(e);
                     notmatchcode.style.display = "block";

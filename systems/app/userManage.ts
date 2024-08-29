@@ -7,7 +7,9 @@ import sendMail from "../api/mailSendAPI.js";
 import randomStringBuilder from "../modules/randomStringBuilder.js";
 
 /** JSONパースを行います。エラー発生時は空のオブジェクトを返します。 */
-function noErrorJSONParse(str: string) { if (typeof str !== "object") return {}; else try { return JSON.parse((str)) } catch (e) { return {} } };
+function noErrorJSONParse(str: string) { try { return JSON.parse((str)) } catch (e) { return {} } };
+
+async function fileExistCheck(path: string) { try { await fsP.stat(path); return true } catch (e) { return false } };
 
 export class userManage {
     constructor() { }
@@ -24,7 +26,8 @@ export class userManage {
         mailCheck: { [mailAddress: string]: number | undefined; };
         mailToken: { [mailAddress: string]: ({ body?: string; issueTime?: number; }[] | undefined); };
         userSave: { [id: string]: true | undefined; };
-    } = { users: {}, mailCheck: {}, mailToken: {}, userSave: {} };
+        userIndex: { userID: string; mailAddress: string; }[];
+    } = { users: {}, mailCheck: {}, mailToken: {}, userSave: {}, userIndex: [] };
     mailToken = new class mailToken {
         userManage: userManage;
         constructor(userManage: userManage) { this.userManage = userManage; };
@@ -78,9 +81,52 @@ export class userManage {
             return body;
         };
     }(this);
+    userIndex = new class userIndex {
+        userManage: userManage;
+        constructor(userManage: userManage) { this.userManage = userManage; };
+        async readJSON() {
+            if (!await fileExistCheck("./systemDatas/userManage/userManage.json")) await this.writeJSON();
+            try { this.userManage.json.userIndex = JSON.parse(String(await fsP.readFile("./systemDatas/userManage/userManage.json"))); } catch (e) { console.log(e) };
+        }
+        async writeJSON() { await fsP.writeFile("./systemDatas/userManage/userManage.json", JSON.stringify(this.userManage.json.userIndex)) };
+        mailAddressExistCheck(string: string) {
+            for (const index of this.userManage.json.userIndex) if (index.mailAddress === string) return true;
+            return false;
+        }
+        userIDExistCheck(string: string) {
+            for (const index of this.userManage.json.userIndex) if (index.userID === string) return true;
+            return false;
+        }
+        idOrMailCheck(string: string) {
+            for (const index of this.userManage.json.userIndex) {
+                if (index.mailAddress === string) return "mailAddress";
+                if (index.userID === string) return "userID";
+            }
+            return "unknown";
+        }
+        userIDtoMailConvert(string: string) {
+            for (const index of this.userManage.json.userIndex) if (index.userID === string) return index.mailAddress;
+        }
+        mailToUserIDConvert(string: string) {
+            for (const index of this.userManage.json.userIndex) if (index.mailAddress === string) return index.userID;
+        }
+    }(this)
     async userManage(req: express.Request, res: express.Response) {
         /** POSTを受けた際にどの内容の場合に何を実行するかを定義しています。 */
         const post: { [name: string]: (() => Promise<void | true | string>) | undefined } = {
+            userIDConfirm: async () => {
+                const json: { username?: string; } = noErrorJSONParse(req.body);
+                if (!(json.username)) return "none username";
+                let userID: string | undefined = json.username;
+                const check = this.userIndex.idOrMailCheck(userID);
+                if (check === "mailAddress") userID = this.userIndex.mailToUserIDConvert(userID);
+                if (check === "unknown") userID = undefined;
+                if (userID) {
+                    res.statusCode = 200;
+                    res.end(JSON.stringify({ userID: userID }));
+                    return true;
+                } else return "userID none";
+            },
             userExistCheck: async () => {
                 const json: { userID?: string; } = noErrorJSONParse(req.body);
                 if (!(json.userID)) return;
@@ -92,40 +138,44 @@ export class userManage {
             mailUsedCheck: async () => {
                 const json: { mailAddress?: string; } = noErrorJSONParse(req.body);
                 if (!(json.mailAddress)) return;
-                for (const userID of Object.keys(this.json.users)) {
-                    const userData = await this.readUserJSON(userID);
-                    if (userData && userData.mailAddress === json.mailAddress) {
-                        res.statusCode = 200;
-                        res.end();
-                        return true;
-                    };
-                };
+                if (this.userIndex.mailAddressExistCheck(json.mailAddress)) {
+                    res.statusCode = 200;
+                    res.end();
+                    return true;
+                }
             },
             createAccounts: async () => {
                 const json: { userID?: string; nickname?: string; mailAddress?: string; mailCheckToken?: string; password?: string; } = noErrorJSONParse(req.body);
                 if (!(json.userID && json.mailAddress && json.mailCheckToken && json.nickname && json.password)) return "404";
                 if (json.userID.replaceAll(/[0-9a-zA-Z._\-]/g, "") !== "" || json.userID.length <= 5 || json.userID.length >= 40 || json.password === "" || json.password.length <= 8) return "json invaid";
                 if (await this.readUserJSON(json.userID)) return "sudenisonzai user";
+                if (this.userIndex.mailAddressExistCheck(json.mailAddress)) return "sudenisiyou mailAddress";
                 if (!this.mailToken.mailTokenCheck(json.mailAddress, json.mailCheckToken)) return "mailToken invaid";
                 this.json.users[json.userID] = { nickname: json.nickname, password: json.password, mailAddress: json.mailAddress, authority: "normal" };
+                this.json.userIndex.push({ userID: json.userID, mailAddress: json.mailAddress });
                 await this.writeUserJSON(json.userID);
+                await this.userIndex.writeJSON();
                 res.statusCode = 200;
                 res.end();
                 return true;
             },
             mailTokenGet: async () => {
-                const json: { mailAddress?: string; code?: string; } = noErrorJSONParse(req.body);
-                if (!(json.mailAddress && json.code)) return;
-                const token = this.mailToken.mailTokenGet(json.mailAddress, Number(json.code));
-                if (!token) return;
+                const json: { mailAddress?: string; code?: string; userID?: string; } = noErrorJSONParse(req.body);
+                if (!((json.mailAddress || json.userID) && json.code)) return;
+                const mailAddress = json.mailAddress || (json.userID ? this.userIndex.userIDtoMailConvert(json.userID) : undefined);
+                if (!mailAddress) return "mailAddress none";
+                const token = this.mailToken.mailTokenGet(mailAddress, Number(json.code));
+                if (!token) return "token none";
                 res.statusCode = 200;
                 res.end(JSON.stringify({ mailToken: token }));
                 return true;
             },
             mailAuthCodeSend: async () => {
-                const json: { mailAddress?: string; } = noErrorJSONParse(req.body);
-                if (!json.mailAddress) return;
-                const status = await this.mailToken.mailTokenAuthCodeSend(json.mailAddress);
+                const json: { mailAddress?: string; userID?: string; } = noErrorJSONParse(req.body);
+                if (!(json.mailAddress || json.userID)) return;
+                const mailAddress = json.mailAddress || (json.userID ? this.userIndex.userIDtoMailConvert(json.userID) : undefined);
+                if (!mailAddress) return;
+                const status = await this.mailToken.mailTokenAuthCodeSend(mailAddress);
                 if (!status) return;
                 res.statusCode = 200;
                 res.end();
@@ -133,8 +183,11 @@ export class userManage {
             },
             loginTokenGet: async () => {
                 const json: { userID?: string; mailAddress?: string; mailCheckToken?: string; password?: string; } = noErrorJSONParse(req.body);
-                if (!(json.userID && json.mailAddress && json.mailCheckToken && json.password)) return "json invaid";
-                const token = await this.loginToken.loginTokenGet(json.userID, json.mailAddress, json.mailCheckToken, json.password);
+                if (!((json.userID || json.mailAddress) && json.mailCheckToken && json.password)) return "json invaid";
+                const userID = json.userID || (json.mailAddress ? this.userIndex.mailToUserIDConvert(json.mailAddress) : undefined);
+                const mailAddress = json.mailAddress || (json.userID ? this.userIndex.userIDtoMailConvert(json.userID) : undefined);
+                if (!(userID && mailAddress)) return;
+                const token = await this.loginToken.loginTokenGet(userID, mailAddress, json.mailCheckToken, json.password);
                 if (!token) return "token none";
                 res.statusCode = 200;
                 res.end(JSON.stringify({ loginToken: token }));
@@ -180,9 +233,9 @@ export class userManage {
     async readUserJSON(userID: string) {
         if (!this.json.users[userID]) {
             const path = "./systemDatas/userManage/usersJSON/" + userID + ".json";
-            if (await (async () => { try { await fsP.stat(path); return false } catch (e) { return true } })()) return;
+            if (!await fileExistCheck(path)) return;
             try {
-                const buf = fsP.readFile(path);
+                const buf = await fsP.readFile(path);
                 const json = noErrorJSONParse(String(buf));
                 if (JSON.stringify(json) === "{}") return;
                 this.json.users[userID] = json;
