@@ -1,4 +1,7 @@
 import { resizeEventSetting } from "./resizeEventSetting.js";
+import userManageAPI from "./userManageAPI.js";
+
+export type ToolsType = { name?: string, url?: string, imageUrl?: string, script?: (elements: { tr: HTMLTableRowElement, td: HTMLTableCellElement, a: HTMLAnchorElement }) => void }[]
 
 export function headerSetting() {
     const mainHeader = document.getElementById("mainHeader");
@@ -20,7 +23,7 @@ export function headerSetting() {
         shadow();
         if (mainScroll) mainScroll.addEventListener("scroll", shadow);
 
-        function propSetting(tools: { name?: string, url?: string, imageUrl?: string, script?: (elements: { tr: HTMLTableRowElement, td: HTMLTableCellElement, a: HTMLAnchorElement }) => void }[], tr: HTMLTableRowElement) {
+        function propSetting(tools: ToolsType, tr: HTMLTableRowElement) {
             for (const func of tools) {
                 const td = document.createElement("td");
                 const a = document.createElement("a");
@@ -58,7 +61,7 @@ export function headerSetting() {
         title.classList.add("title");
         title.innerText = "メニュー";
         pageItemTr.appendChild(title);
-        propSetting([
+        const headerList: ToolsType = [
             { name: "ホーム", url: "/" },
             { name: "ゲーム・遊び", url: "/games/" },
             { name: "Web OS/App", url: "/WebOS/" },
@@ -68,9 +71,11 @@ export function headerSetting() {
             { name: "寄付・支援", url: "/donate/" },
             { name: "依頼・リクエスト", url: "/request/" },
             { name: "サーバー仕様", url: "/serverStatus/" },
-            { name: "Webページ制作中です。" },
-            { name: "ログイン", url: "/login/", imageUrl: "" }
-        ], pageItemTr);
+            { name: "Webページ制作中です。" }
+        ];
+        console.log(userManageAPI.defaultUserExist())
+        if (userManageAPI.defaultUserExist()) headerList.push({ url: "/accountManage/", imageUrl: "" }); else headerList.push({ name: "ログイン", url: "/login/", imageUrl: "" })
+        propSetting(headerList, pageItemTr);
         pageItemTbody.appendChild(pageItemTr);
         pageItemTable.appendChild(pageItemTbody);
         bodyHeader.appendChild(pageItemTable);

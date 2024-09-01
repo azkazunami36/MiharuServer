@@ -8,7 +8,7 @@ import helmet from "helmet";
 import { GetResponse } from "./systems/modules/getResponse.js";
 import sumwave28536App from "./systems/app/sumwave28536.js";
 import promisedLazyApp from "./systems/app/promisedLazy.js";
-import UserManageApp from "./systems/app/userManage.js"
+import UserManageApp from "./systems/app/userManage.js";
 
 // 定義
 const getResponse = new GetResponse();
@@ -51,5 +51,4 @@ userManageApp.userIndex.readJSON().then(() => {
             default: sumwave28536App(req, res, next); break;
         };
     });
-
 });

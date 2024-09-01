@@ -1,10 +1,11 @@
 import cookieValueGet from "../src/js/cookieValueGet.js";
 import postTool from "../src/js/postTool.js";
 import { sumPageInit } from "../src/js/sumPageInit.js";
+import userManageAPI from "../src/js/userManageAPI.js";
 
 addEventListener("load", () => {
     sumPageInit();
-    if (cookieValueGet("token") && cookieValueGet("id")) window.location.href = "/accountManage/";
+    if (userManageAPI.defaultUserExist()) window.location.href = "/accountManage/";
 
     const loginWindow = document.getElementById("loginWindow");
 
@@ -45,19 +46,19 @@ addEventListener("load", () => {
             || notmatchingpasswordIs
         ) return;
         try {
-            const userID = JSON.parse(String(await postTool("/userRequest/userIDConfirm", { username: username.value }))).userID;
-            await postTool("/userRequest/mailAuthCodeSend", { mailAddress: username.addEventListener, userID });
+            const userID = await userManageAPI.userNameToUserID(username.value);
+            console.log(userID, {userID});
+            if (!await userManageAPI.mailAuthCodeSend({ userID })) throw "メールを送信できませんでした。";
+            console.log("づい");
             loginWindow.style.display = "none";
             authCodeWindow.style.display = "block";
             authsubmit.addEventListener("click", async e => {
                 e.preventDefault();
-                    notmatchcode.style.display = "none";
+                notmatchcode.style.display = "none";
                 try {
                     if (typeof userID !== "string") throw "不明なエラー";
-                    const mailToken = JSON.parse(String(await postTool("/userRequest/mailTokenGet", { userID, code: authCode.value }))).mailToken;
-                    const loginToken = JSON.parse(String(await postTool("/userRequest/loginTokenGet", { userID: userID, mailCheckToken: mailToken, password: password.value }))).loginToken;
-                    document.cookie = "token=" + loginToken + ";maxage=" + (60 * 60 * 24 * 180);
-                    document.cookie = "id=" + userID + ";maxage=" + (60 * 60 * 24 * 180);
+                    if(!await userManageAPI.autoAuthAndLogin({ userID, mailAuthCode: authCode.value, password: password.value })) throw "ログイン失敗";
+                    window.location.href = "/accountManage/";
                 } catch (e) {
                     console.log(e);
                     notmatchcode.style.display = "block";

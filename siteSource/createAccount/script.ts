@@ -104,8 +104,9 @@ addEventListener("load", () => {
                     createData.mailCheckToken = JSON.parse(String(await postTool("/userRequest/mailTokenGet", { mailAddress: createData.mailAddress, code: authCode.value }))).mailToken;;
                     await postTool("/userRequest/createAccounts", createData);
                     const loginToken = JSON.parse(String(await postTool("/userRequest/loginTokenGet", createData))).loginToken;
-                    document.cookie = "token=" + loginToken + ";maxage=" + (60 * 60 * 24 * 180);
-                    document.cookie = "id=" + createData.userID + ";maxage=" + (60 * 60 * 24 * 180);
+                    document.cookie = "token=" + loginToken + ";maxage=" + (60 * 60 * 24 * 180) + "; path=/";
+                    document.cookie = "id=" + createData.userID + ";maxage=" + (60 * 60 * 24 * 180) + "; path=/";
+                    window.location.href = "/accountManage/";
                 } catch (e) {
                     console.log(e);
                     notmatchcode.style.display = "block";

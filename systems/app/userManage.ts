@@ -15,7 +15,12 @@ export class userManage {
     constructor() { }
     json: {
         users: {
-            [id: string]: {
+            [uuid: string]: {
+                id?: string;
+                userRealName?: {
+                    first: string;
+                    last: string
+                }
                 nickname?: string;
                 password?: string;
                 mailAddress?: string;
@@ -26,7 +31,7 @@ export class userManage {
         mailCheck: { [mailAddress: string]: number | undefined; };
         mailToken: { [mailAddress: string]: ({ body?: string; issueTime?: number; }[] | undefined); };
         userSave: { [id: string]: true | undefined; };
-        userIndex: { userID: string; mailAddress: string; }[];
+        userIndex: { userID: string; mailAddress: string; uuid: string; }[];
     } = { users: {}, mailCheck: {}, mailToken: {}, userSave: {}, userIndex: [] };
     mailToken = new class mailToken {
         userManage: userManage;
@@ -59,16 +64,16 @@ export class userManage {
     }(this);
     loginToken = new class loginToken {
         userManage: userManage;
-        constructor(userManage: userManage) { this.userManage = userManage; }
+        constructor(userManage: userManage) { this.userManage = userManage; };
         /** 主に外部でアカウントの認証の際に使用する関数です。 */
         async loginTokenCheck(userID: string, loginToken: string) {
-            const userData = await this.userManage.readUserJSON(userID);
+            const userData = await this.userManage.readUserJSON({ userID });
             if (!userData?.token?.loginToken) return false;
             for (const data of userData.token.loginToken) if (loginToken === data.body) return true;
             return false;
         };
         async loginTokenGet(userID: string, mailAddress: string, mailCheckToken: string, password: string) {
-            const userData = await this.userManage.readUserJSON(userID);
+            const userData = await this.userManage.readUserJSON({ userID });
             if (!userData) return;
             if (!userData.token) userData.token = {};
             if (!userData.token.loginToken) userData.token.loginToken = [];
@@ -77,7 +82,7 @@ export class userManage {
             const body = randomStringBuilder(64, { str: true, num: true, upstr: true });
             const issueTime = Date.now();
             userData.token.loginToken.push({ body, issueTime });
-            await this.userManage.writeUserJSON(userID);
+            await this.userManage.writeUserJSON({ userID });
             return body;
         };
     }(this);
@@ -104,33 +109,17 @@ export class userManage {
             }
             return "unknown";
         }
-        userIDtoMailConvert(string: string) {
-            for (const index of this.userManage.json.userIndex) if (index.userID === string) return index.mailAddress;
-        }
-        mailToUserIDConvert(string: string) {
-            for (const index of this.userManage.json.userIndex) if (index.mailAddress === string) return index.userID;
+        usernameStringToConvert(string: string, raw: "userID" | "mailAddress" | "uuid", toConvert: "userID" | "mailAddress" | "uuid") {
+            for (const userIndex of this.userManage.json.userIndex) if (string === userIndex[raw]) return userIndex[toConvert];
         }
     }(this)
     async userManage(req: express.Request, res: express.Response) {
         /** POSTを受けた際にどの内容の場合に何を実行するかを定義しています。 */
         const post: { [name: string]: (() => Promise<void | true | string>) | undefined } = {
-            userIDConfirm: async () => {
-                const json: { username?: string; } = noErrorJSONParse(req.body);
-                if (!(json.username)) return "none username";
-                let userID: string | undefined = json.username;
-                const check = this.userIndex.idOrMailCheck(userID);
-                if (check === "mailAddress") userID = this.userIndex.mailToUserIDConvert(userID);
-                if (check === "unknown") userID = undefined;
-                if (userID) {
-                    res.statusCode = 200;
-                    res.end(JSON.stringify({ userID: userID }));
-                    return true;
-                } else return "userID none";
-            },
             userExistCheck: async () => {
                 const json: { userID?: string; } = noErrorJSONParse(req.body);
                 if (!(json.userID)) return;
-                if (!await this.readUserJSON(json.userID)) return;
+                if (!await this.readUserJSON({ userID: json.userID })) return;
                 res.statusCode = 200;
                 res.end();
                 return true;
@@ -148,21 +137,27 @@ export class userManage {
                 const json: { userID?: string; nickname?: string; mailAddress?: string; mailCheckToken?: string; password?: string; } = noErrorJSONParse(req.body);
                 if (!(json.userID && json.mailAddress && json.mailCheckToken && json.nickname && json.password)) return "404";
                 if (json.userID.replaceAll(/[0-9a-zA-Z._\-]/g, "") !== "" || json.userID.length <= 5 || json.userID.length >= 40 || json.password === "" || json.password.length <= 8) return "json invaid";
-                if (await this.readUserJSON(json.userID)) return "sudenisonzai user";
+                if (await this.readUserJSON({ userID: json.userID })) return "sudenisonzai user";
                 if (this.userIndex.mailAddressExistCheck(json.mailAddress)) return "sudenisiyou mailAddress";
                 if (!this.mailToken.mailTokenCheck(json.mailAddress, json.mailCheckToken)) return "mailToken invaid";
-                this.json.users[json.userID] = { nickname: json.nickname, password: json.password, mailAddress: json.mailAddress, authority: "normal" };
-                this.json.userIndex.push({ userID: json.userID, mailAddress: json.mailAddress });
-                await this.writeUserJSON(json.userID);
+                const uuid = uuidv7() + Math.floor(Math.random() * 10) + Date.now()
+                this.json.users[uuid] = { nickname: json.nickname, password: json.password, mailAddress: json.mailAddress, authority: "normal" };
+                this.json.userIndex.push({ userID: json.userID, mailAddress: json.mailAddress, uuid: uuid });
+                await this.writeUserJSON({ userID: json.userID });
                 await this.userIndex.writeJSON();
                 res.statusCode = 200;
                 res.end();
                 return true;
             },
             mailTokenGet: async () => {
-                const json: { mailAddress?: string; code?: string; userID?: string; } = noErrorJSONParse(req.body);
-                if (!((json.mailAddress || json.userID) && json.code)) return;
-                const mailAddress = json.mailAddress || (json.userID ? this.userIndex.userIDtoMailConvert(json.userID) : undefined);
+                const json: { username?: string; code?: string; } = noErrorJSONParse(req.body);
+                if (!(json.username && json.code)) return;
+                let userID: string | undefined = json.username;
+                const check = this.userIndex.idOrMailCheck(userID);
+                if (check === "mailAddress") userID = this.userIndex.usernameStringToConvert(userID, "mailAddress", "userID");
+                if (check === "unknown") userID = undefined;
+                if (!userID) return "userID undefined";
+                const mailAddress = this.userIndex.usernameStringToConvert(userID, "userID", "mailAddress");
                 if (!mailAddress) return "mailAddress none";
                 const token = this.mailToken.mailTokenGet(mailAddress, Number(json.code));
                 if (!token) return "token none";
@@ -171,9 +166,14 @@ export class userManage {
                 return true;
             },
             mailAuthCodeSend: async () => {
-                const json: { mailAddress?: string; userID?: string; } = noErrorJSONParse(req.body);
-                if (!(json.mailAddress || json.userID)) return;
-                const mailAddress = json.mailAddress || (json.userID ? this.userIndex.userIDtoMailConvert(json.userID) : undefined);
+                const json: { username?: string; } = noErrorJSONParse(req.body);
+                if (!json.username) return;
+                let userID: string | undefined = json.username;
+                const check = this.userIndex.idOrMailCheck(userID);
+                if (check === "mailAddress") userID = this.userIndex.usernameStringToConvert(userID, "mailAddress", "userID");
+                if (check === "unknown") userID = undefined;
+                if (!userID) return "userID undefined";
+                const mailAddress = this.userIndex.usernameStringToConvert(userID, "userID", "mailAddress");
                 if (!mailAddress) return;
                 const status = await this.mailToken.mailTokenAuthCodeSend(mailAddress);
                 if (!status) return;
@@ -182,10 +182,14 @@ export class userManage {
                 return true;
             },
             loginTokenGet: async () => {
-                const json: { userID?: string; mailAddress?: string; mailCheckToken?: string; password?: string; } = noErrorJSONParse(req.body);
-                if (!((json.userID || json.mailAddress) && json.mailCheckToken && json.password)) return "json invaid";
-                const userID = json.userID || (json.mailAddress ? this.userIndex.mailToUserIDConvert(json.mailAddress) : undefined);
-                const mailAddress = json.mailAddress || (json.userID ? this.userIndex.userIDtoMailConvert(json.userID) : undefined);
+                const json: { username?: string; mailCheckToken?: string; password?: string; } = noErrorJSONParse(req.body);
+                if (!(json.username && json.mailCheckToken && json.password)) return "json invaid";
+                let userID: string | undefined = json.username;
+                const check = this.userIndex.idOrMailCheck(userID);
+                if (check === "mailAddress") userID = this.userIndex.usernameStringToConvert(userID, "mailAddress", "userID");
+                if (check === "unknown") userID = undefined;
+                if (!userID) return "userID undefined";
+                const mailAddress = this.userIndex.usernameStringToConvert(userID, "userID", "mailAddress");
                 if (!(userID && mailAddress)) return;
                 const token = await this.loginToken.loginTokenGet(userID, mailAddress, json.mailCheckToken, json.password);
                 if (!token) return "token none";
@@ -201,14 +205,22 @@ export class userManage {
                 res.statusCode = 200;
                 res.end();
                 return true;
+            },
+            dataGet: async () => {
+                const json: { userID?: string; loginToken?: string; keyName?: string; } = noErrorJSONParse(req.body);
+                if (!(json.userID && json.loginToken && json.keyName)) return;
+                const boolean = await this.loginToken.loginTokenCheck(json.userID, json.loginToken);
+                if (!boolean) return;
+                const userData = await this.readUserJSON({ userID: json.userID });
+                const allowKeyName = ["authority", "mailAddress", "nickname", "id", "userRealName"];
             }
-        }
+        };
         /** URLのルートパスを変更しています。(ニュアンス・説明が間違っていたらすみません。パスの一番左側を削除しています。) */
         const reqURL = (() => {
             const splitedURL = req.url.split("/");
             let text = "";
             for (let i = 2; i !== splitedURL.length; i++) text += (i !== 2 ? "/" : "") + splitedURL[i];
-            return text
+            return text;
         })();
         const postFunction = post[reqURL];
         if (postFunction) {
@@ -230,27 +242,30 @@ export class userManage {
             res.end();
         }
     }
-    async readUserJSON(userID: string) {
-        if (!this.json.users[userID]) {
-            const path = "./systemDatas/userManage/usersJSON/" + userID + ".json";
+    async readUserJSON(option: { userID: string }) { 
+        const uuid = this.userIndex.usernameStringToConvert(option.userID, "userID", "uuid");
+        if (!uuid) return
+        if (!this.json.users[uuid]) {
+            const path = "./systemDatas/userManage/usersJSON/" + uuid + ".json";
             if (!await fileExistCheck(path)) return;
             try {
                 const buf = await fsP.readFile(path);
                 const json = noErrorJSONParse(String(buf));
                 if (JSON.stringify(json) === "{}") return;
-                this.json.users[userID] = json;
+                this.json.users[uuid] = json;
             } catch (e) { console.log(e); return; };
         }
-        return this.json.users[userID];
+        return this.json.users[uuid];
     };
-    async writeUserJSON(userID: string) {
-        if (this.json.userSave[userID]) return;
-        this.json.userSave[userID] = true;
+    async writeUserJSON(option: { userID: string }) {
+        const uuid = this.userIndex.usernameStringToConvert(option.userID, "userID", "uuid");
+        if (!uuid || !this.json.userSave[uuid]) return;
+        this.json.userSave[uuid] = true;
         try {
-            const path = "./systemDatas/userManage/usersJSON/" + userID + ".json";
-            await fsP.writeFile(path, JSON.stringify(this.json.users[userID]));
+            const path = "./systemDatas/userManage/usersJSON/" + uuid + ".json";
+            await fsP.writeFile(path, JSON.stringify(this.json.users[uuid]));
         } catch (e) { console.log(e); };
-        this.json.userSave[userID] = undefined;
+        this.json.userSave[uuid] = undefined;
     };
 }
 

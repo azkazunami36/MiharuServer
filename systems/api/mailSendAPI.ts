@@ -15,6 +15,7 @@ export async function sendMail(
     try {
         const keys = JSON.parse(String(fs.readFileSync(path.join(process.cwd(), "./keyData/credentials.json"))));
         const tokenPath = path.join(process.cwd(), "./keyData/token.json");
+        const oAuth2Client = new OAuth2Client(keys.installed.client_id, keys.installed.client_secret, "http://localhost:3000");
         if (!fs.existsSync(tokenPath)) await new Promise<void>((resolve, reject) => {
             const server = http.createServer(async (req, res) => {
                 try {
@@ -32,7 +33,6 @@ export async function sendMail(
                 console.log("認証が必要です。次のリンクを開いてください。ローカルホストにリダイレクトするため、実行マシンで開いてください。", oAuth2Client.generateAuthUrl({ access_type: "offline", scope: ["https://www.googleapis.com/auth/gmail.send"] }));
             }); destroyer(server);
         });
-        const oAuth2Client = new OAuth2Client(keys.installed.client_id, keys.installed.client_secret, "http://localhost:3000");
         oAuth2Client.setCredentials((() => {
             try {
                 return JSON.parse(String(fs.readFileSync(tokenPath)))
