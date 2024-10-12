@@ -11,12 +11,12 @@ const jyAPI = new jyupAPI();
 
 const allowed: { [type: string]: string[] } = {
     files: ["", "index.html"],
-    folders: ["src"]
+    folders: ["src", "contact", "event", "member", "about","usoNEWS"]
 };
 
 const post: { path: string, func: (req: express.Request, res: express.Response) => any }[] = [
     { path: "/jyupAPI*", func: jyAPI.jyupAPI }
 ]
 
-for (const type of Object.keys(allowed)) for (const name of allowed[type]) app.get("/" + name + (type === "folders" ? "*" : ""), async (req, res) => { await getResponse.getResponceAuto(req, res, "/siteSource/promisedLazy"); });
+for (const type of Object.keys(allowed)) for (const name of allowed[type]) app.get("/" + name + (type === "folders" ? "*" : ""), async (req, res) => { await getResponse.getResponceAuto(req, res, "/siteSource/jyuP"); });
 for (const data of post) app.post(data.path, data.func);

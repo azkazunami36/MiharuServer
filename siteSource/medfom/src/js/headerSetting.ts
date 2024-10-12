@@ -59,24 +59,17 @@ export function headerSetting() {
 
         const title = document.createElement("td");
         title.classList.add("title");
-        title.innerText = "メニュー";
+        title.innerText = "Menu";
         pageItemTr.appendChild(title);
+        const bull = window.location.hostname === "medfom.com" ? "/" : "/medfom/";
         const headerList: ToolsType = [
-            { name: "ホーム", url: "/" },
-            { name: "ゲーム・遊び", url: "/games/" },
-            { name: "Web OS/App", url: "/WebOS/" },
-            { name: "小説・漫画", url: "/novel/" },
-            { name: "掲示板", url: "/bulletinBoard/" },
-            { name: "Promised Lazy", url: "/promisedLazy/" },
-            { name: "JyuP", url: "/jyuP/" },
-            { name: "Medfom", url: "/medfom/" },
-            { name: "寄付・支援", url: "/donate/" },
-            { name: "依頼・リクエスト", url: "/request/" },
-            { name: "サーバー仕様", url: "/serverStatus/" },
-            { name: "Webページ制作中です。" }
+            { name: "ホーム", url: bull + "/" },
+            { name: "サービス", url: bull + "/service/" },
+            { name: "アプリ", url: bull + "/app/" },
+            { name: "ヘルプ", url: bull + "/help/" }
         ];
         console.log(userManageAPI.defaultUserExist())
-        if (userManageAPI.defaultUserExist()) headerList.push({ url: "/accountManage/", imageUrl: "" }); else headerList.push({ name: "ログイン", url: "/login/", imageUrl: "" })
+        if (userManageAPI.defaultUserExist()) headerList.push({ imageUrl: "" }); else headerList.push({ name: "ログイン", url: bull + "/account/login/", imageUrl: "" })
         propSetting(headerList, pageItemTr);
         pageItemTbody.appendChild(pageItemTr);
         pageItemTable.appendChild(pageItemTbody);
@@ -89,7 +82,7 @@ export function headerSetting() {
 
         propSetting([
             {
-                imageUrl: "/src/image/メニューアイコン黒.svg", script: elements => {
+                imageUrl: "./src/image/menuIconBlack.svg", script: elements => {
                     let timeout: NodeJS.Timeout | undefined;
                     let listenerIs = false;
                     function eventListener(e: any) {

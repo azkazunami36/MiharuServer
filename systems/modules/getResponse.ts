@@ -144,7 +144,6 @@ export class GetResponse {
     /** エラー時の返答を行います。最低限のヘッダーと特定のファイル、そしてレスポンスコードを設定して返答します。 */
     async error(req: express.Request, res: express.Response, errorNo: number) {
         const filepath = this.errorHtmlPath[errorNo];
-        console.log((new Date()).toLocaleTimeString() + ": " + this.urlGet(req.url), req.headers.host, req.ip);
         if (filepath && fs.existsSync(filepath)) {
             const fileSize = (await fsP.stat(filepath)).size;
             const headers = await this.headerGet(req, filepath, fileSize);
@@ -170,7 +169,6 @@ export class GetResponse {
     async getResponceAuto(req: express.Request, res: express.Response, leftPathEdit?: string) {
         const url = (leftPathEdit ? leftPathEdit : "") + this.urlGet(req.url);
         if (fs.existsSync("." + url) && (await fsP.stat("." + url)).isDirectory()) return res.redirect(req.url + "/");
-        console.log((new Date()).toLocaleTimeString() + ": " + this.urlGet(req.url), req.headers.host, req.ip);
         const filepath = "." + url;
         if (!fs.existsSync(filepath)) return await this.error(req, res, 404);
         const fileSize = (await fsP.stat(filepath)).size;
@@ -184,3 +182,5 @@ export class GetResponse {
         app.use(express.raw({ type: 'application/octet-stream' }));
     }
 }
+
+export default GetResponse;

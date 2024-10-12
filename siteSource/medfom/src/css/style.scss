@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap');
+@import url("./headerStyle.css");
+
+@font-face {
+    font-family: 'keifont';
+    src: url(./fonts/keifont.ttf);
+}
+
+html,
+body {
+    background-color: #ffffffce;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: "Noto Sans JP", sans-serif;
+}
+
+#background {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    img {
+        opacity: 0.6;
+        filter: blur(1.25px);
+    }
+}
+
+#mainScroll {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: 0;
+    overflow-y: scroll;
+    overflow-x: hidden;
+
+    .mainContents {
+        width: auto;
+        max-width: 1000px;
+        margin-left: auto;
+        margin-right: auto;
+        overflow: hidden;
+    }
+}
+
+#mainContents {
+    width: auto;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+
+    .viewBlock {
+        width: calc(100% - 55px);
+        background: white;
+        margin: 7.5px 0;
+        padding: 15px 15px;
+        border-radius: 10px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.116), 1px 1px 3px rgba(0, 0, 0, 0.116);
+        transition: .2s;
+        transform: scale(1);
+
+        .image {
+            width: 100%;
+            height: 128px;
+        }
+
+        .title {
+            font-size: 2.25em;
+            font-weight: 600;
+        }
+
+        .description {
+            font-size: 1em;
+        }
+    }
+    .viewBlock:hover {
+        transition: .2s;
+        transform: scale(1.015);
+    }
+
+    .viewBlockRow {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+
+        .viewBlock {
+            width: calc(50% - 55px);
+        }
+    }
+    .parag {
+        width: calc(100% - 30px);
+        margin: 0 15px 7.5px 15px;
+        padding: 10px 0;
+        font-size: 2.5em;
+        font-weight: 600;
+        border-bottom: 1px solid black;
+    }
+}
+
+#footer {
+    width: 100%;
+    min-height: 400px;
+    background: rgb(201, 201, 201);
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #00000093;
+        color: #fff;
+    }
+}
+
+@media screen and (max-width: 800px) {
+    @media (prefers-color-scheme: dark) {}
+}
